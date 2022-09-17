@@ -4,11 +4,127 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Qualidade do vinho</title>
+        <link href="/static/style.css" rel="stylesheet">
+        <title>Wine Quality</title>
+
+        <!-- Bootstrap -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous"></script>
     </head>
     
     <body>
-        <h1>Template</h1>
+
+        <header class="p-3 text-bg-dark">
+            <div class="container">
+                <h1>Wine Quality</h1>
+            </div>
+        </header>
+
+        <div class="loading hide" id="loading">
+            <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+        </div>
+
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="mt-5 title">Quer saber se possui um vinho de qualidade? Preencha os dados e verifique!</h3>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <label class="form-label">Volatilidade dos ácidos</label>
+                    <input class="form-control" type="number" id="volatile_acidity">
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-12">
+                    <label class="form-label">Concentração de ácido cítrico</label>
+                    <input class="form-control" type="number" id="citric_acid">
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-12">
+                    <label class="form-label">Concentração de dióxido de encofre livre</label>
+                    <input class="form-control" type="number" id="free_sulfur_dioxide">
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-12">
+                    <label class="form-label">Teor alcóolico</label>
+                    <input class="form-control" type="number" id="alcohol">
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
+                    <button class="btn btn-primary" onclick="predict()" id="submit">Verificar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal" tabindex="-1" id="result">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">E o seu vinho é...</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="description"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </body>
+
+    <script>
+        
+        async function predict() {
+            const volatile_acidity = parseFloat(document.getElementById("volatile_acidity").value);
+            const citric_acid = parseFloat(document.getElementById("citric_acid").value);
+            const free_sulfur_dioxide = parseFloat(document.getElementById("free_sulfur_dioxide").value);
+            const alcohol = parseFloat(document.getElementById("alcohol").value);
+            const submit = document.getElementById("submit");
+            const loading = document.getElementById("loading");
+            const modal = new bootstrap.Modal("#result");
+            const description = document.getElementById("description");
+            
+            if(isNaN(alcohol) || isNaN(free_sulfur_dioxide) || isNaN(citric_acid) || isNaN(volatile_acidity)) {
+                alert("Por favor, informe corretamente os quatro parâmetros para verificação.");
+                return;
+            }
+
+            try {
+                submit.textContent = "Aguarde...";
+                loading.classList.remove("hide");
+                const req = await fetch("/predict", {
+                    method: "POST",
+                    body: JSON.stringify({ volatile_acidity, citric_acid, free_sulfur_dioxide, alcohol })
+                });
+                const res = await req.json();
+                if(!res.success)
+                    throw new Error(res.message);
+
+                const quality = res.quality;
+                const message = quality == 1
+                    ? "Ai sim, você tem em mãos um produto de ótima qualidade. Aprecie com moderação."
+                    : "Opa, não parece ser dos melhores. Bom, fique prossiga por sua conta e risco.";
+                modal.show();
+                description.textContent = message;
+
+            } catch(error) {
+                alert(`Desculpe, ocorreu um erro: ${error.message}`);
+            } finally {
+                submit.textContent = "Verificar";
+                loading.classList.add("hide");
+            }
+        }
+
+    </script>
 
 </html>

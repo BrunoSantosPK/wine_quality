@@ -26,3 +26,5 @@ Todas as funcionalidades do manager.py e do notebook necessitam da correta confi
 
 # Webapp
 Como forma de disponibilizar o modelo preditivo foi desenvolvida uma API capaz de receber os inputs do modelo e devolver o resultado da previsão. Seguindo as práticas de TDD, a codificação se deu por meio de testes que garantem a qualidade do sistema. Para executar todos os testes e verificar a integridade do sistema deste repositório, basta executar "pytest" no terminal.
+
+O arquivo de inicialização do webapp é o `wsgi.py`, executando uma aplicação flask na versão desenvolvimento. Para deploy, o repositório conta com o gunicorn, configurado para o heroku.
